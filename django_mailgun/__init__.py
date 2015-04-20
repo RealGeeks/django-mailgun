@@ -3,14 +3,6 @@ from django.conf import settings
 from django.core.mail.backends.base import BaseEmailBackend
 from django.core.mail.message import sanitize_address
 
-try:
-    from io import StringIO
-except ImportError:
-    try:
-        from cStringIO import StringIO
-    except ImportError:
-        from StringIO import StringIO
-
 class MailgunAPIError(Exception):
     pass
 
@@ -35,7 +27,7 @@ class MailgunBackend(BaseEmailBackend):
             else:
                 raise
 
-        self._api_url = "https://api.mailgun.net/v2/%s/" % self._server_name
+        self._api_url = "https://api.mailgun.net/v3/%s/" % self._server_name
 
     def open(self):
         """Stub for open connection, all sends are done over HTTP POSTs
@@ -62,7 +54,12 @@ class MailgunBackend(BaseEmailBackend):
             post_data.append(('to', (",".join(recipients)),))
             post_data.append(('text', email_message.body,))
             post_data.append(('subject', email_message.subject,))
-            post_data.append(('from', from_email,))
+            post_data.append(('from', email_message.from_email,))
+
+            if 'Reply-To' in email_message.extra_headers:
+                reply_to = email_message.extra_headers['Reply-To']
+                reply_to = sanitize_address(reply_to, email_message.encoding)
+                post_data.append(('h:Reply-To', reply_to,))
 
             if hasattr(email_message, 'alternatives') and email_message.alternatives:
                 for alt in email_message.alternatives:
