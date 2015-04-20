@@ -54,7 +54,7 @@ class MailgunBackend(BaseEmailBackend):
             post_data.append(('to', (",".join(recipients)),))
             post_data.append(('text', email_message.body,))
             post_data.append(('subject', email_message.subject,))
-            post_data.append(('from', email_message.from_email,))
+            post_data.append(('from', from_email,))
 
             if 'Reply-To' in email_message.extra_headers:
                 reply_to = email_message.extra_headers['Reply-To']
