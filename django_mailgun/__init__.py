@@ -1,3 +1,5 @@
+import json
+
 import requests
 from django.conf import settings
 from django.core.mail.backends.base import BaseEmailBackend
@@ -60,6 +62,10 @@ class MailgunBackend(BaseEmailBackend):
                 reply_to = email_message.extra_headers['Reply-To']
                 reply_to = sanitize_address(reply_to, email_message.encoding)
                 post_data.append(('h:Reply-To', reply_to,))
+
+            if 'X-Mailgun-Variables' in email_message.extra_headers:
+                custom_data = email_message.extra_headers['X-Mailgun-Variables']
+                post_data.append(('v:my-custom-data', json.dumps(custom_data)))
 
             if hasattr(email_message, 'alternatives') and email_message.alternatives:
                 for alt in email_message.alternatives:
